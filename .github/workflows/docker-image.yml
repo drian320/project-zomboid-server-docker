@@ -1,32 +1,36 @@
 name: Docker Image CI
 
 on:
-  schedule:
-    - cron: "0 */6 * * *"
-  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-
-  build:
-
+  build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-      - name: リポジトリのチェックアウト
-        uses: actions/checkout@v3
+    - name: チェックアウト
+      uses: actions/checkout@v3
 
-      - name: GitHub Container Registryにログイン
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-    
-      - name: 最新バージョンの確認と新バージョンのプッシュ
-        shell: bash
-        run: |
-          # スクリプトを実行可能にする（必要ない場合もあります）
-          chmod +x "${GITHUB_WORKSPACE}/scripts/get_updates.sh"
+    - name: GitHub Container Registryにログイン
+      uses: docker/login-action@v2
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
 
-          # スクリプトを実行
-          "${GITHUB_WORKSPACE}/scripts/get_updates.sh"
+    - name: Dockerイメージのビルドとプッシュ
+      uses: docker/build-push-action@v4
+      with:
+        context: .
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
