@@ -5,14 +5,17 @@ FROM cm2network/steamcmd:root
 
 LABEL maintainer="daniel.carrasco@electrosoftcloud.com"
 
-ENV STEAMAPPID 380870
-ENV STEAMAPP pz
-ENV STEAMAPPDIR "${HOMEDIR}/${STEAMAPP}-dedicated"
+ENV USER=steam \
+    HOME="/home/${USER}" \
+    STEAMAPPID=380870 \
+    STEAMAPP=pz \
+    STEAMAPPDIR="${HOMEDIR}/${STEAMAPP}-dedicated"
+
 
 # Install required packages
 RUN apt-get update \
     && apt-get install -y --no-install-recommends --no-install-suggests \
-      dos2unix \
+        dos2unix \vim \htop \net-tools \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
